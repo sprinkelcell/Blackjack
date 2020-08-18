@@ -20,6 +20,33 @@ func (hand Hand) String() string {
 func (hand Hand) dealerString() string {
 	return hand[0].String() + ", **HIDDEN**"
 }
+
+func (hand Hand) Score() int {
+	minScore := hand.MinScore()
+	if minScore > 11 {
+		return minScore
+	}
+	for _, val := range hand {
+		if val.Rank == deck.Ace {
+			return minScore + 10
+		}
+	}
+	return minScore
+}
+func (hand Hand) MinScore() int {
+	score := 0
+	for _, val := range hand {
+		score += min(int(val.Rank), 10)
+	}
+	return score
+}
+
+func min(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
+}
 func main() {
 	cards := deck.NewDeck(deck.MultiDeck(3), deck.ShuffleDec)
 	var card deck.Card
@@ -47,7 +74,26 @@ func main() {
 			fmt.Println("Invalid input")
 		}
 	}
+
+	for (dealer.Score() <= 16) || (dealer.Score() == 17 && dealer.MinScore() != 17) {
+		card, cards = cards[0], cards[1:]
+		dealer = append(dealer, card)
+	}
 	fmt.Println("--- Final Hand ---")
-	fmt.Println("Players Cards : ", player)
-	fmt.Println("Dealers Cards : ", dealer)
+	pScore, dScore := player.Score(), dealer.Score()
+	fmt.Println("Players Cards : ", player, "\nScore : ", pScore)
+	fmt.Println("Dealers Cards : ", dealer, "\nScore : ", dScore)
+	switch {
+	case pScore > 21:
+		fmt.Println("You busted!")
+	case dScore > 21:
+		fmt.Println("Dealer busted!")
+	case pScore > dScore:
+		fmt.Println("You win")
+	case pScore < dScore:
+		fmt.Println("You lose")
+	case pScore == dScore:
+		fmt.Println("Draw")
+
+	}
 }
